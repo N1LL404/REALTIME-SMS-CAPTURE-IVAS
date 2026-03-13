@@ -1,28 +1,32 @@
 /* ============================================
    IVAS SMS Capture - Side Panel Styles
-   Premium Dark Theme with Glassmorphism
+   Clean White + Yellow Premium Theme
    ============================================ */
 
 :root {
-  --bg-primary: #0f1117;
-  --bg-secondary: #1a1d28;
-  --bg-card: #1e2132;
-  --bg-card-hover: #252940;
-  --border-color: rgba(255, 255, 255, 0.06);
-  --text-primary: #e8eaf0;
-  --text-secondary: #8b8fa3;
-  --text-muted: #5a5e72;
-  --accent-gradient: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
-  --accent-color: #8b5cf6;
-  --accent-glow: rgba(139, 92, 246, 0.3);
-  --success: #34d399;
-  --danger: #f87171;
-  --warning: #fbbf24;
-  --copy-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
-  --clear-gradient: linear-gradient(135deg, #374151, #4b5563);
+  --bg-primary: #ffffff;
+  --bg-secondary: #fffef5;
+  --bg-card: #fffdf0;
+  --bg-card-hover: #fff9dc;
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-light: rgba(0, 0, 0, 0.04);
+  --text-primary: #1a1a2e;
+  --text-secondary: #555770;
+  --text-muted: #9e9fb3;
+  --accent-gradient: linear-gradient(135deg, #f59e0b, #eab308, #facc15);
+  --accent-color: #d97706;
+  --accent-light: #fbbf24;
+  --accent-glow: rgba(245, 158, 11, 0.25);
+  --accent-bg: rgba(245, 158, 11, 0.08);
+  --success: #16a34a;
+  --danger: #dc2626;
+  --warning: #d97706;
+  --copy-gradient: linear-gradient(135deg, #f59e0b, #eab308);
+  --clear-gradient: linear-gradient(135deg, #e5e7eb, #d1d5db);
   --radius: 12px;
   --radius-sm: 8px;
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 24px rgba(0, 0, 0, 0.08);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -51,11 +55,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(245, 158, 11, 0.3);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.5);
+  background: rgba(245, 158, 11, 0.5);
 }
 
 /* ============================================
@@ -79,7 +83,7 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 3px;
   background: var(--accent-gradient);
 }
 
@@ -91,21 +95,15 @@ body {
 
 .header-icon {
   font-size: 22px;
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 0 8px var(--accent-glow));
+  color: var(--accent-color);
+  filter: drop-shadow(0 0 6px var(--accent-glow));
 }
 
 .header-title {
   font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-primary);
 }
 
 .header-subtitle {
@@ -116,15 +114,15 @@ body {
 }
 
 .stat-badge {
-  background: rgba(99, 102, 241, 0.12);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: var(--accent-bg);
+  border: 1px solid rgba(245, 158, 11, 0.2);
   border-radius: 20px;
   padding: 6px 14px;
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-color);
 }
 
@@ -139,6 +137,7 @@ body {
   padding: 12px 18px;
   flex-shrink: 0;
   position: relative;
+  background: var(--bg-primary);
 }
 
 .search-icon {
@@ -152,7 +151,7 @@ body {
 
 .search-input {
   width: 100%;
-  background: var(--bg-card);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 10px 14px 10px 38px;
@@ -168,8 +167,9 @@ body {
 }
 
 .search-input:focus {
-  border-color: rgba(139, 92, 246, 0.4);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  background: #ffffff;
 }
 
 /* ============================================
@@ -179,6 +179,7 @@ body {
   flex: 1;
   overflow-y: auto;
   padding: 0 12px 12px;
+  background: var(--bg-primary);
 }
 
 /* ---- Empty State ---- */
@@ -194,17 +195,14 @@ body {
 
 .empty-icon {
   font-size: 48px;
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--accent-light);
   margin-bottom: 16px;
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
 @keyframes pulse-glow {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.05); }
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
 }
 
 .empty-title {
@@ -232,6 +230,7 @@ body {
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow);
 }
 
 .sms-card::before {
@@ -248,8 +247,9 @@ body {
 
 .sms-card:hover {
   background: var(--bg-card-hover);
-  border-color: rgba(139, 92, 246, 0.15);
+  border-color: rgba(245, 158, 11, 0.25);
   transform: translateX(2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .sms-card:hover::before {
@@ -298,8 +298,8 @@ body {
 .sms-phone {
   font-size: 11px;
   color: var(--accent-color);
-  font-weight: 500;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   margin-top: 2px;
 }
 
@@ -308,10 +308,11 @@ body {
   font-weight: 600;
   padding: 3px 8px;
   border-radius: 4px;
-  background: rgba(99, 102, 241, 0.12);
+  background: var(--accent-bg);
   color: var(--accent-color);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border: 1px solid rgba(245, 158, 11, 0.15);
 }
 
 .sms-message {
@@ -320,16 +321,16 @@ body {
   line-height: 1.5;
   word-break: break-word;
   padding: 8px 10px;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(245, 158, 11, 0.04);
   border-radius: var(--radius-sm);
-  border-left: 2px solid rgba(139, 92, 246, 0.3);
+  border-left: 3px solid var(--accent-light);
 }
 
 .sms-code {
   display: inline-block;
-  background: rgba(139, 92, 246, 0.15);
-  color: #c4b5fd;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  background: rgba(245, 158, 11, 0.12);
+  color: #92400e;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   font-weight: 700;
   font-size: 13px;
   padding: 2px 8px;
@@ -360,12 +361,12 @@ body {
 }
 
 .status-paid {
-  background: rgba(52, 211, 153, 0.15);
+  background: rgba(22, 163, 74, 0.1);
   color: var(--success);
 }
 
 .status-unpaid {
-  background: rgba(248, 113, 113, 0.15);
+  background: rgba(220, 38, 38, 0.1);
   color: var(--danger);
 }
 
@@ -391,7 +392,7 @@ body {
 .sms-copy-btn:hover {
   border-color: var(--accent-color);
   color: var(--accent-color);
-  background: rgba(139, 92, 246, 0.08);
+  background: var(--accent-bg);
 }
 
 /* ============================================
@@ -426,13 +427,13 @@ body {
 
 .btn-copy {
   background: var(--copy-gradient);
-  color: white;
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+  color: #1a1a2e;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
 }
 
 .btn-copy:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(99, 102, 241, 0.45);
+  box-shadow: 0 6px 24px rgba(245, 158, 11, 0.45);
 }
 
 .btn-copy:active {
@@ -447,7 +448,7 @@ body {
 
 .btn-clear:hover {
   color: var(--danger);
-  background: rgba(248, 113, 113, 0.12);
+  background: rgba(220, 38, 38, 0.08);
 }
 
 /* ============================================
@@ -458,8 +459,8 @@ body {
   bottom: 80px;
   left: 50%;
   transform: translateX(-50%) translateY(20px);
-  background: var(--bg-card);
-  border: 1px solid rgba(52, 211, 153, 0.3);
+  background: #ffffff;
+  border: 1px solid rgba(22, 163, 74, 0.25);
   color: var(--success);
   padding: 10px 20px;
   border-radius: var(--radius-sm);
@@ -471,7 +472,7 @@ body {
   opacity: 0;
   pointer-events: none;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-lg);
   z-index: 1000;
 }
 
@@ -484,7 +485,7 @@ body {
    Highlight codes in message
    ============================================ */
 .highlight-code {
-  color: #c4b5fd;
+  color: #92400e;
   font-weight: 700;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
 }

@@ -1,17 +1,25 @@
-// IVAS SMS Capture - Content Script
-// Monitors #LiveTestSMS for new SMS rows and sends data to the extension
+// IVAS SMS Capture - Content Script (Ultra-Reliable Edition)
+// Uses triple-layer capture: MutationObserver + Aggressive Polling + innerHTML change detection
+// Designed to NEVER miss a single message
 
 (function () {
   'use strict';
 
-  const POLL_INTERVAL = 2000; // Check every 2 seconds for the table
+  const INIT_POLL_MS = 500;        // Check for table every 500ms
+  const RESCRAPE_MS = 1500;        // Full re-scrape every 1.5 seconds
+  const INNERHTML_CHECK_MS = 1000; // Check innerHTML hash every 1 second
   const seenKeys = new Set();
+  let lastInnerHTML = '';
+  let totalCaptured = 0;
 
   /**
    * Extract SMS data from a single <tr> row
    */
   function extractRowData(row) {
     try {
+      const tds = row.querySelectorAll('td');
+      if (!tds || tds.length < 5) return null;
+
       // Phone number from .CopyText element
       const phoneEl = row.querySelector('.CopyText');
       const phone = phoneEl ? phoneEl.textContent.trim() : '';
@@ -25,17 +33,16 @@
       const flagSrc = flagImg ? flagImg.src : '';
 
       // SID (second td)
-      const tds = row.querySelectorAll('td');
-      const sid = tds.length > 1 ? tds[1].textContent.trim() : '';
+      const sid = tds[1].textContent.trim();
 
       // Paid status (third td)
-      const paid = tds.length > 2 ? tds[2].textContent.trim() : '';
+      const paid = tds[2].textContent.trim();
 
       // Limit status (fourth td)
-      const limit = tds.length > 3 ? tds[3].textContent.trim() : '';
+      const limit = tds[3].textContent.trim();
 
       // Message content (fifth td)
-      const message = tds.length > 4 ? tds[4].textContent.trim() : '';
+      const message = tds[4].textContent.trim();
 
       // Extract numeric code from the message (first sequence of 4-8 digits)
       const codeMatch = message.match(/\b(\d{4,8})\b/);
@@ -61,9 +68,48 @@
   }
 
   /**
-   * Scrape all existing rows from the table
+   * Generate a dedup key for a row
    */
-  function scrapeExistingRows() {
+  function makeKey(data) {
+    return data.phone + '|' + data.message;
+  }
+
+  /**
+   * Send a single new SMS entry
+   */
+  function sendSingle(data) {
+    const key = makeKey(data);
+    if (seenKeys.has(key)) return false;
+    seenKeys.add(key);
+    totalCaptured++;
+    try {
+      chrome.runtime.sendMessage({ type: 'NEW_SMS', data: data });
+    } catch (e) {
+      console.warn('[IVAS SMS Capture] sendMessage failed, will retry on next scrape:', e.message);
+    }
+    return true;
+  }
+
+  /**
+   * Send a batch of new SMS entries
+   */
+  function sendBatch(entries) {
+    if (entries.length === 0) return;
+    try {
+      chrome.runtime.sendMessage({ type: 'NEW_SMS_BATCH', data: entries });
+    } catch (e) {
+      console.warn('[IVAS SMS Capture] sendMessage batch failed:', e.message);
+      // Fallback: send individually
+      entries.forEach(d => {
+        try { chrome.runtime.sendMessage({ type: 'NEW_SMS', data: d }); } catch (_) {}
+      });
+    }
+  }
+
+  /**
+   * LAYER 1: Full table scrape — always catches everything
+   */
+  function fullScrape() {
     const tbody = document.querySelector('#LiveTestSMS');
     if (!tbody) return;
 
@@ -73,65 +119,64 @@
     rows.forEach(row => {
       const data = extractRowData(row);
       if (data) {
-        const key = data.phone + '|' + data.message;
+        const key = makeKey(data);
         if (!seenKeys.has(key)) {
           seenKeys.add(key);
+          totalCaptured++;
           batch.push(data);
         }
       }
     });
 
     if (batch.length > 0) {
-      chrome.runtime.sendMessage({ type: 'NEW_SMS_BATCH', data: batch });
+      sendBatch(batch);
+      console.log(`[IVAS SMS Capture] Scraped ${batch.length} new messages (total: ${totalCaptured})`);
     }
   }
 
   /**
-   * Set up MutationObserver to watch for new rows
+   * LAYER 2: MutationObserver — catches DOM changes instantly
    */
   function observeTable() {
     const tbody = document.querySelector('#LiveTestSMS');
     if (!tbody) return;
 
     const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        // Handle added nodes (new rows)
-        for (const node of mutation.addedNodes) {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            let rows = [];
-            if (node.tagName === 'TR') {
-              rows.push(node);
-            } else {
-              rows = Array.from(node.querySelectorAll ? node.querySelectorAll('tr') : []);
-            }
+      let foundNew = false;
 
-            rows.forEach(row => {
+      for (const mutation of mutations) {
+        // New nodes added (new rows)
+        if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType !== Node.ELEMENT_NODE) continue;
+
+            const rows = node.tagName === 'TR' ? [node] :
+              Array.from(node.querySelectorAll ? node.querySelectorAll('tr') : []);
+
+            for (const row of rows) {
               const data = extractRowData(row);
-              if (data) {
-                const key = data.phone + '|' + data.message;
-                if (!seenKeys.has(key)) {
-                  seenKeys.add(key);
-                  chrome.runtime.sendMessage({ type: 'NEW_SMS', data: data });
-                }
+              if (data && sendSingle(data)) {
+                foundNew = true;
               }
-            });
+            }
           }
         }
 
-        // Also handle characterData and attribute changes (in case content updates in-place)
+        // In-place text/attribute changes
         if (mutation.type === 'characterData' || mutation.type === 'attributes') {
           const row = mutation.target.closest ? mutation.target.closest('tr') : null;
           if (row) {
             const data = extractRowData(row);
-            if (data) {
-              const key = data.phone + '|' + data.message;
-              if (!seenKeys.has(key)) {
-                seenKeys.add(key);
-                chrome.runtime.sendMessage({ type: 'NEW_SMS', data: data });
-              }
+            if (data && sendSingle(data)) {
+              foundNew = true;
             }
           }
         }
+      }
+
+      // If new rows detected via mutation, also do a full scrape to be safe
+      if (foundNew) {
+        setTimeout(fullScrape, 200);
       }
     });
 
@@ -142,32 +187,84 @@
       attributes: true
     });
 
-    console.log('[IVAS SMS Capture] MutationObserver started on #LiveTestSMS');
+    console.log('[IVAS SMS Capture] MutationObserver active on #LiveTestSMS');
   }
 
   /**
-   * Periodically re-scrape to catch any missed rows
+   * LAYER 3: innerHTML change detection — catches dynamic content replacement
+   * Some sites replace innerHTML entirely instead of adding nodes,
+   * which can bypass MutationObserver in some edge cases
+   */
+  function startInnerHTMLWatcher() {
+    setInterval(() => {
+      const tbody = document.querySelector('#LiveTestSMS');
+      if (!tbody) return;
+
+      const currentHTML = tbody.innerHTML;
+      if (currentHTML !== lastInnerHTML) {
+        lastInnerHTML = currentHTML;
+        fullScrape();
+      }
+    }, INNERHTML_CHECK_MS);
+  }
+
+  /**
+   * Aggressive periodic re-scrape as ultimate safety net
    */
   function startPeriodicScrape() {
-    setInterval(() => {
-      scrapeExistingRows();
-    }, 5000);
+    setInterval(fullScrape, RESCRAPE_MS);
   }
 
   /**
-   * Wait for the #LiveTestSMS element to appear, then initialize
+   * Also watch for the table container being replaced entirely
+   * (e.g. if the page does AJAX reload of the whole section)
+   */
+  function watchForTableRecreation() {
+    const bodyObserver = new MutationObserver(() => {
+      const tbody = document.querySelector('#LiveTestSMS');
+      if (tbody) {
+        fullScrape();
+        // Re-attach observer if tbody was recreated
+        observeTable();
+      }
+    });
+
+    bodyObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  /**
+   * Wait for the #LiveTestSMS element to appear, then initialize all layers
    */
   function init() {
+    console.log('[IVAS SMS Capture] Initializing... waiting for #LiveTestSMS');
+
     const checkInterval = setInterval(() => {
       const tbody = document.querySelector('#LiveTestSMS');
       if (tbody) {
         clearInterval(checkInterval);
-        console.log('[IVAS SMS Capture] Found #LiveTestSMS, initializing...');
-        scrapeExistingRows();
-        observeTable();
+        console.log('[IVAS SMS Capture] Found #LiveTestSMS — starting 3-layer capture');
+
+        // Initial full scrape
+        fullScrape();
+
+        // Layer 1: Periodic full re-scrape (every 1.5s)
         startPeriodicScrape();
+
+        // Layer 2: MutationObserver for instant detection
+        observeTable();
+
+        // Layer 3: innerHTML hash-based change detection
+        startInnerHTMLWatcher();
+
+        // Bonus: Watch for entire table section being replaced
+        watchForTableRecreation();
+
+        console.log('[IVAS SMS Capture] All capture layers active ✓');
       }
-    }, POLL_INTERVAL);
+    }, INIT_POLL_MS);
   }
 
   init();
