@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IVAS SMS Capture</title>
+  <link rel="stylesheet" href="sidepanel.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-brand">
+      <i class="fas fa-envelope-open-text header-icon"></i>
+      <div>
+        <h1 class="header-title">SMS Capture</h1>
+        <p class="header-subtitle">Real-time monitoring</p>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="stat-badge">
+        <i class="fas fa-inbox"></i>
+        <span id="totalCount">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-container">
+    <i class="fas fa-search search-icon"></i>
+    <input type="text" id="searchInput" class="search-input" placeholder="Search by number, SID, or message...">
+  </div>
+
+  <!-- Message List -->
+  <div class="message-list" id="messageList">
+    <div class="empty-state" id="emptyState">
+      <i class="fas fa-satellite-dish empty-icon"></i>
+      <p class="empty-title">Waiting for SMS...</p>
+      <p class="empty-text">Messages will appear here as they arrive on the Live SMS page.</p>
+    </div>
+  </div>
+
+  <!-- Bottom Action Bar -->
+  <div class="action-bar">
+    <button class="btn btn-copy" id="copyAllBtn" title="Copy All">
+      <i class="fas fa-copy"></i>
+      <span>Copy All</span>
+    </button>
+    <button class="btn btn-clear" id="clearAllBtn" title="Clear All">
+      <i class="fas fa-trash-alt"></i>
+      <span>Clear</span>
+    </button>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage">Copied to clipboard!</span>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>
